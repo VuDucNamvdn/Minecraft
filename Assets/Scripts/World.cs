@@ -20,6 +20,13 @@ public class World : MonoBehaviour
     List<ChunkCoord> chunksToCreate = new List<ChunkCoord>();
     ChunkCoord playerChunkCoord;
     ChunkCoord playerLastChunkCoord;
+    public ChunkCoord PlayerChunkCoord
+    {
+        get
+        {
+            return playerChunkCoord;
+        }
+    }
     bool isCreatingChunks;
     private void Start()
     {

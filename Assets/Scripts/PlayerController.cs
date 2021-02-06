@@ -110,6 +110,10 @@ public class PlayerController : MonoBehaviour
         {
             jumpInput = false;
         }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            jumpInput = false;
+        }
     }
     private float CheckFallSpeed(float downSpeed)
     {
