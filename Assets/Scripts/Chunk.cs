@@ -18,6 +18,10 @@ public class Chunk
 
     public ChunkCoord coord;
     public bool isVoxelMapPopulated = false;
+    public GameObject gameObject
+    {
+        get { return chunkObject; }
+    }
     public Chunk(ChunkCoord _coord, World _world, bool generateOnLoad=false)
     {
         world = _world;
@@ -39,8 +43,7 @@ public class Chunk
         chunkObject.name = "Chunk" + coord.ToString();
 
         PopulateVoxelMap();
-        AddChunkData();
-        CreateMesh();
+        UpdateChunk();
     }
 
     private void PopulateVoxelMap()
@@ -57,7 +60,7 @@ public class Chunk
         }
         isVoxelMapPopulated = true;
     }
-    private void AddVoxelData(Vector3 pos)
+    private void UpdateMeshData(Vector3 pos)
     {
         for (int p = 0; p < 6; p++)
         {
@@ -83,8 +86,9 @@ public class Chunk
             }
         }
     }
-    private void AddChunkData()
+    private void UpdateChunk()
     {
+        ClearChunkData();
         for (int x = 0; x < VoxelData.chunkWidth; x++)
         {
             for (int y = 0; y < VoxelData.chunkHeight; y++)
@@ -93,11 +97,19 @@ public class Chunk
                 {
                     if(world.blockTypes[voxelMap[x,y,z]].isSolid)
                     {
-                        AddVoxelData(new Vector3(x, y, z));
+                        UpdateMeshData(new Vector3(x, y, z));
                     }
                 }
             }
         }
+        CreateMesh();
+    }
+    private void ClearChunkData()
+    {
+        vertexIndex = 0;
+        vertices.Clear();
+        triangles.Clear();
+        uvs.Clear();
     }
     private void CreateMesh()
     {
@@ -142,16 +154,42 @@ public class Chunk
         else
             return true;
     }
+    public void EditVoxel(Vector3 pos, byte newID)
+    {
+        int xCheck = Mathf.FloorToInt(pos.x);
+        int yCheck = Mathf.FloorToInt(pos.y);
+        int zCheck = Mathf.FloorToInt(pos.z);
+
+        xCheck -= Mathf.FloorToInt(chunkObject.transform.position.x);
+        zCheck -= Mathf.FloorToInt(chunkObject.transform.position.z);
+
+        voxelMap[xCheck, yCheck, zCheck] = newID;
+        UpdateSurroundingVoxel(xCheck, yCheck, zCheck);
+        UpdateChunk();
+    }
+    private void UpdateSurroundingVoxel(int x, int y, int z)
+    {
+        Vector3 thisVoxel = new Vector3(x, y, z);
+        for (int p = 0; p < 6; p++)
+        {
+            Vector3 currentVoxel = thisVoxel + VoxelData.faceCheck[p];
+            Vector3Int currentVoxelInt = Vector3Int.FloorToInt(currentVoxel);
+            if(!IsVoxelInChunk(currentVoxelInt.x, currentVoxelInt.y, currentVoxelInt.z))
+            {
+                world.GetChunkFromVector3(currentVoxel + position).UpdateChunk();
+            }
+        }
+    }
     private bool CheckVoxel(Vector3 pos)
     {
         int x = Mathf.FloorToInt(pos.x);
         int y = Mathf.FloorToInt(pos.y);
         int z = Mathf.FloorToInt(pos.z);
         if (!IsVoxelInChunk(x, y, z))
-            return world.CheckVoxel(pos + position);
+            return world.CheckForVoxel(pos + position);
         return world.blockTypes[voxelMap[x, y, z]].isSolid;
     }
-    public byte GetVoxelFromLocalVector3(Vector3 pos)
+    public byte GetVoxelFromGlobalVector3(Vector3 pos)
     {
         int xCheck = Mathf.FloorToInt(pos.x);
         int yCheck = Mathf.FloorToInt(pos.y);
