@@ -23,8 +23,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float reach = 8f;
     [SerializeField] Transform highlightBlock;
     [SerializeField] Transform placeBlock;
-    [SerializeField] Text selectedBlockText;
     [SerializeField] byte selectedBlockIndex = 1;
+
     #endregion
     #region private vars
     private float horizontal;
@@ -38,11 +38,15 @@ public class PlayerController : MonoBehaviour
     private Vector3 velocity;
 
     #endregion
+    public byte currentBlockIdex
+    {
+        get { return selectedBlockIndex; }
+        set { selectedBlockIndex = value; }
+    }
     #region MonoBehaviour
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        selectedBlockText.text = world.blockTypes[selectedBlockIndex].blockName + " block selected";
     }
     private void FixedUpdate()
     {
@@ -53,7 +57,7 @@ public class PlayerController : MonoBehaviour
         }
         transform.Rotate(Vector3.up * mouseHorizontal * mouseSentivity * Time.deltaTime);
         mainCam.Rotate(Vector3.right * mouseVertical * mouseSentivity * Time.deltaTime);
-        mainCam.localRotation = new Quaternion(Mathf.Clamp(mainCam.localRotation.x, -0.5f, 0.5f), mainCam.localRotation.y, mainCam.localRotation.z, mainCam.localRotation.w);
+        mainCam.localRotation = new Quaternion(Mathf.Clamp(mainCam.localRotation.x, -0.7f, 0.7f), mainCam.localRotation.y, mainCam.localRotation.z, mainCam.localRotation.w);
     }
     private void Update()
     {
@@ -230,19 +234,6 @@ public class PlayerController : MonoBehaviour
         }
         #endregion
         #region Place/ Destroy Blocks
-        float scroll = Input.GetAxis("MouseScrollWheel");
-        if(scroll != 0)
-        {
-            if (scroll > 0)
-                selectedBlockIndex++;
-            else
-                selectedBlockIndex--;
-            if (selectedBlockIndex > (byte)(world.blockTypes.Length - 1))
-                selectedBlockIndex = 1;
-            if (selectedBlockIndex < 1)
-                selectedBlockIndex = (byte)(world.blockTypes.Length - 1);
-            selectedBlockText.text = world.blockTypes[selectedBlockIndex].blockName + " block selected";
-        }
 
         if(highlightBlock.gameObject.activeSelf)
         {

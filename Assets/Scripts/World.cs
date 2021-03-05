@@ -4,15 +4,14 @@ using UnityEngine;
 
 public class World : MonoBehaviour
 {
-    [SerializeField]
-    Transform player;
-    [SerializeField]
-    int seed;
-    [SerializeField]
-    BiomeAttributes biome;
+    [SerializeField] Transform player;
+    [SerializeField] int seed;
+    [SerializeField] BiomeAttributes biome;
+    [SerializeField] Sprite[] icons;
 
     public Vector3 spawnPosittion;
     public Material material;
+    public Material transparentMaterial;
     public BlockType[] blockTypes;
     Chunk[,] chunks = new Chunk[VoxelData.worldSizeInChunks, VoxelData.worldSizeInChunks];
     List<ChunkCoord> activeChunks = new List<ChunkCoord>();
@@ -208,12 +207,27 @@ public class World : MonoBehaviour
         }
         return blockTypes[GetVoxel(pos)].isSolid;
     }
+    public bool CheckIfVoxelTransparent(Vector3 pos)
+    {
+        ChunkCoord thisChunk = new ChunkCoord(pos);
+        if (!IsVoxelInWorld(pos) || pos.y < 0 || pos.y > VoxelData.chunkHeight)
+        {
+            return false;
+        }
+        if (chunks[thisChunk.x, thisChunk.z] != null && chunks[thisChunk.x, thisChunk.z].isVoxelMapPopulated)
+        {
+            return blockTypes[chunks[thisChunk.x, thisChunk.z].GetVoxelFromGlobalVector3(pos)].isTransparent;
+        }
+        return blockTypes[GetVoxel(pos)].isTransparent;
+    }
 }
 [System.Serializable]
 public class BlockType
 {
-    public bool isSolid;
     public string blockName;
+    public bool isSolid;
+    public bool isTransparent;
+    public Sprite icon;
     [Header("Texture Value")]
     public int backFaceTexture;
     public int frontFaceTexture;
